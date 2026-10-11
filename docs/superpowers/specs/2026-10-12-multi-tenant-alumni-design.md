@@ -60,7 +60,7 @@ Browser -> alumni.sikhon.systems (Caddy) -> alumni-system (Express, one process)
    - records the schema version,
    - names the college from its Shikhon record,
    - makes that admin the first alumni admin.
-   An advisory lock prevents two simultaneous opens from provisioning twice.
+   A lock prevents two simultaneous opens from provisioning twice: provisioning is claimed with one atomic status update (`pending` or `failed` to `provisioning`), and exactly one caller wins. A claim older than 10 minutes can be taken over, so a crashed run cannot block a college forever. The first Shikhon admin becomes `super_admin` inside their college. Database and role names are `alumni_<readable-prefix>_<6 hex of a hash of the tenant id>`, so any tenant ID or college name yields a safe identifier.
 4. If a non-admin opens an unprovisioned college, they see "Ask your college admin to activate Alumni". Only admins can trigger provisioning.
 5. Later opens look the college up in `alumni_control` and use its pool.
 6. Pending migrations are applied at deploy time, with a check on first access as a backstop.
@@ -72,8 +72,8 @@ Browser -> alumni.sikhon.systems (Caddy) -> alumni-system (Express, one process)
 - Name, logo and optional accent colour live in `alumni_control`.
 - **Defaults.** On first open the name comes from the Shikhon record. The logo is blank until the admin uploads one, and the header shows the name with initials until then.
 - **Editing.** A Settings page, admin only: change name, upload logo, pick accent colour.
-- **Logo upload.** PNG, JPG or SVG within a size limit, validated server-side. SVGs are sanitised so they cannot carry scripts. Logos are stored per college and served from a college-scoped path.
-- **Rendering.** The header, login screen, emails and page titles read branding from the current college. All hardcoded DIC text and images are removed.
+- **Logo upload.** PNG, JPEG or WebP up to 512 KB, with the type checked from the file's bytes, not its declared type. SVG is not supported in this version: safe sanitising needs a heavy dependency and raster formats cover the need. Logos are stored in the control database and served from a college-scoped path with `nosniff` and a locked-down content security policy.
+- **Rendering.** The header, page titles and in-app screens read branding from the current college. Before sign-in the college is not yet known, so the login screen shows generic "Shikhon Alumni" branding. All hardcoded DIC text and images are removed.
 - **Caching.** Branding is cached per college for a short time and invalidated when the admin saves.
 
 ## 6. Error handling
@@ -113,6 +113,10 @@ These are not yet confirmed and will be checked at the start of the implementati
 
 The owner intends to supply new designs for a full redesign of the dashboard. They have not been provided yet. This spec covers the multi-college foundation only. The visual redesign will get its own spec once the designs arrive, and it must use the branding data defined in Section 5.
 
-## 11. Repository
+## 11. Hardening done first
+
+A security review of the baseline found defects that must not reach any college. The implementation plan fixes them before the multi-college work: payment settlement by the payer, paid tickets confirmed without payment, invite-only events open to registration, event status and approval edits by moderators, private phone numbers in directory search, CSV formula injection, and the login throttle reset. Planning also found that the server published its own source and SQL files, and that database connections skipped certificate verification; both are fixed. Payment settlement now requires a signed gateway callback or an administrator, so until a real gateway is connected, donations and paid tickets stay pending in production. The owner should confirm that behaviour.
+
+## 12. Repository
 
 This work lives in `shikhon-alumni`, a separate repo seeded with a baseline snapshot (commit `5c52725`) of the DIC code. The original DICAlumniNetwork clone is not modified. No GitHub remote exists yet.

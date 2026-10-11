@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="11 10 264.6 88" width="264.6" height="88">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00A8EE" />
+      <stop offset="100%" stop-color="#0B3897" />
+    </linearGradient>
+    <linearGradient id="ribbonGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00A8EE" />
+      <stop offset="100%" stop-color="#0088CC" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Shield Crest Outer -->
+  <path d="M20 15 L70 15 L70 55 C70 75 45 90 45 90 C45 90 20 75 20 55 Z" fill="url(#shieldGrad)" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/>
+  
+  <!-- Inner Shield Border -->
+  <path d="M25 20 L65 20 L65 54 C65 70 45 83 45 83 C45 83 25 70 25 54 Z" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+  
+  <!-- Chevron Divider -->
+  <path d="M25 45 L45 32 L65 45" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Top Book / Crown Emblem -->
+  <path d="M36 28 Q45 24 54 28 L54 33 Q45 29 36 33 Z" fill="#FFFFFF"/>
+  <path d="M38 29 L38 32 M45 27 L45 31 M52 29 L52 32" stroke="#0B3897" stroke-width="1"/>
+
+  <!-- Flower / Star Emblem -->
+  <circle cx="45" cy="54" r="3.5" fill="#FFFFFF"/>
+  <circle cx="45" cy="47" r="2.5" fill="#E2E8F0"/>
+  <circle cx="52" cy="54" r="2.5" fill="#E2E8F0"/>
+  <circle cx="45" cy="61" r="2.5" fill="#E2E8F0"/>
+  <circle cx="38" cy="54" r="2.5" fill="#E2E8F0"/>
+
+  <!-- Ribbon at Bottom -->
+  <path d="M12 72 Q45 84 78 72 L72 82 Q45 92 18 82 Z" fill="url(#ribbonGrad)"/>
+  <text x="45" y="81" font-family="'Inter', sans-serif" font-weight="900" font-size="8" fill="#FFFFFF" text-anchor="middle" letter-spacing="1.5">DIC</text>
+
+  <!-- Typography: "Daffodil" -->
+  <text x="95" y="48" font-family="'Inter', 'Arial Black', sans-serif" font-weight="900" font-size="38" fill="#0B3897" letter-spacing="-0.5">Daffodil</text>
+
+  <!-- Typography: "International" (Cursive/Script style) -->
+  <text x="135" y="65" font-family="'Georgia', 'Times New Roman', serif" font-style="italic" font-weight="400" font-size="22" fill="#718096" letter-spacing="0.5">International</text>
+
+  <!-- Typography: "College" -->
+  <text x="135" y="90" font-family="'Inter', 'Arial Black', sans-serif" font-weight="900" font-size="30" fill="#00A8EE" letter-spacing="0">College</text>
+</svg>

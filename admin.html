@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Daffodil International College — staff administration portal" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>DIC Staff Portal — Daffodil International College</title>
+  <!-- OpenGraph & WhatsApp In-App Browser Meta Tags -->
+  <meta property="og:title" content="DIC Alumni Network — Daffodil International College" />
+  <meta property="og:description" content="Official Alumni System for Daffodil International College (DIC)" />
+  <meta property="og:url" content="https://dic-alumni-network.vercel.app/" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Inter is loaded asynchronously. As a plain <link rel="stylesheet"> it
+       blocked first paint, so whenever fonts.googleapis.com was slow or
+       throttled the app showed a blank screen until the request timed out.
+       The media="print" swap lets the page render immediately in the system
+       font stack and upgrade to Inter once it arrives. -->
+  <link rel="stylesheet" media="print" onload="this.media='all';this.onload=null"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" />
+  <noscript>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" />
+  </noscript>
+  <!-- Charts and QR are progressive enhancements; the app guards both and
+       stays usable if the CDN is unreachable. -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#6C63FF" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Read by navigation.js. It selects the admin navigation and makes
+       enterAuthenticatedApp() refuse a non-staff account here. -->
+  <script>window.DIC_PORTAL = 'admin';</script>
+</head>
+<body>
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-bg-grid"></div>
+    <div class="login-orb login-orb-1"></div>
+    <div class="login-orb login-orb-2"></div>
+    <div class="login-container">
+      <div class="login-brand">
+        <img src="assets/dic-logo.png" onerror="this.onerror=null;this.src='assets/daffodil-logo.svg'"
+             alt="Daffodil International College" class="login-brand-logo" />
+        <span class="brand-tag">Alumni &amp; Career Network</span>
+      </div>
+      <div class="login-card glass-card">
+        <div class="login-step" id="step-1">
+
+          <!-- SIGN IN -->
+          <div id="auth-panel-signin">
+          <h1 class="login-title">DIC Staff Portal</h1>
+          <p class="login-subtitle">Administrator sign-in. Alumni use the main site.</p>
+          <form onsubmit="handleLoginSubmit(event)">
+            <div class="input-group">
+              <label class="input-label">DIC Email Address</label>
+              <input type="email" id="login-email" class="form-input" inputmode="email" autocomplete="email" placeholder="you@dic.edu.bd" required />
+            </div>
+            <div class="input-group">
+              <label class="input-label">Password</label>
+              <input type="password" id="login-password" class="form-input" autocomplete="current-password" placeholder="••••••••" required />
+            </div>
+            <div class="login-error hidden" id="login-error" role="alert"></div>
+            <button type="submit" class="btn btn-primary btn-full" id="login-submit-btn">Sign In to DIC →</button>
+              <button type="button" class="link-btn" onclick="showForgotPassword()">Forgot your password?</button>
+          </form>
+          <p class="login-footer" style="margin-top:16px">Staff accounts are provisioned by a super admin. There is no self-registration here.</p>
+          </div><!-- /auth-panel-signin -->
+
+            <!-- A super admin has nobody above them to click "Reset password",
+                 so without self-service recovery a forgotten password meant
+                 server access. Both panels live beside the sign-in form and are
+                 swapped in by js/auth.js. -->
+            <div id="auth-panel-forgot" class="hidden">
+              <h1 class="login-title">Reset your password</h1>
+              <p class="login-subtitle">We will issue a single-use link that expires in 30 minutes.</p>
+              <form onsubmit="handleForgotSubmit(event)">
+                <div class="input-group">
+                  <label class="input-label">Email address</label>
+                  <input type="email" id="forgot-email" class="form-input" inputmode="email"
+                         autocomplete="email" required />
+                </div>
+                <!-- Deliberately the same message whether or not the address
+                     exists: anything else turns this into a way of discovering
+                     which addresses are real. -->
+                <div class="login-note hidden" id="forgot-message" role="status"></div>
+                <button type="submit" class="btn btn-primary btn-full" id="forgot-submit-btn">Send reset link</button>
+              </form>
+              <button type="button" class="btn btn-ghost btn-full" style="margin-top:10px"
+                      onclick="hideForgotPassword()">Back to sign in</button>
+            </div>
+
+            <div id="auth-panel-reset" class="hidden">
+              <h1 class="login-title">Choose a new password</h1>
+              <p class="login-subtitle">This link can be used once. Signing in again will need the new password.</p>
+              <form onsubmit="handleResetSubmit(event)">
+                <div class="input-group">
+                  <label class="input-label">New password</label>
+                  <input type="password" id="reset-password" class="form-input"
+                         autocomplete="new-password" minlength="8" required />
+                </div>
+                <div class="input-group">
+                  <label class="input-label">Confirm new password</label>
+                  <input type="password" id="reset-password2" class="form-input"
+                         autocomplete="new-password" minlength="8" required />
+                </div>
+                <div class="login-error hidden" id="reset-error" role="alert"></div>
+                <button type="submit" class="btn btn-primary btn-full">Set new password</button>
+              </form>
+              <button type="button" class="btn btn-ghost btn-full" style="margin-top:10px"
+                      onclick="hideForgotPassword()">Back to sign in</button>
+            </div>
+
+        </div>
+      </div>
+      <!-- Three stat pills used to sit here reading 38,420 alumni, ৳45.2L
+           raised and 3,800 mentorships. Every platform figure is behind
+           authentication, so a signed-out visitor cannot be shown a real one —
+           and these were not real. -->
+      <div class="login-stats">
+        <div class="stat-pill">Daffodil International College</div>
+        <div class="stat-pill">Alumni &amp; Career Network</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="main-app" class="hidden app-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <img src="assets/dic-logo.png" onerror="this.onerror=null;this.src='assets/daffodil-logo.svg'"
+             alt="Daffodil International College" class="sidebar-brand-logo" />
+        <button class="sidebar-close" onclick="toggleSidebar()"><i data-lucide="x" class="ui-icon"></i></button>
+      </div>
+      <div class="tenant-pill">
+        <span class="tenant-dot" style="background:var(--diu-green)"></span>
+        <span id="active-tenant" style="font-weight:700">Daffodil Int. College</span>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav-container">
+        <!-- Dynamically rendered per role -->
+      </nav>
+
+      <!-- MOBILE-ONLY CONTROL DECK (relocated from topbar so it fits a phone) -->
+      <div class="sidebar-controls" id="sidebar-controls">
+        <span class="sidebar-controls-label">Signed in as</span>
+        <span class="role-display drawer" id="drawer-role-display"></span>
+        <div class="sidebar-controls-row">
+          <button class="drawer-btn" style="grid-column:span 2" onclick="toggleSidebar(); showBroadcastModal();"><i data-lucide="megaphone" class="ui-icon"></i> Broadcast</button>
+        </div>
+        <div class="offline-status online drawer" id="drawer-offline-status">
+          <span class="status-dot"></span>
+          <span class="status-text">PostgreSQL · Live</span>
+        </div>
+      </div>
+
+      <div class="sidebar-user">
+        <div class="user-avatar-sm" id="sidebar-user-avatar">SA</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebar-user-name">System Administrator</div>
+          <div class="user-role" id="sidebar-user-role">Super Admin</div>
+        </div>
+        <button class="logout-btn" onclick="logout()" title="Sign Out"><i data-lucide="log-out" class="ui-icon"></i></button>
+      </div>
+    </aside>
+
+    <!-- TOPBAR (DAFFODIL BRAND #0B3897) -->
+    <div class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()"><i data-lucide="menu" class="ui-icon"></i></button>
+      <div class="topbar-brand-logo">
+        <img src="assets/dic-logo.png" onerror="this.onerror=null;this.src='assets/daffodil-logo.svg'"
+             alt="Daffodil International College" />
+      </div>
+      <div class="topbar-search">
+        <span class="search-icon"><i data-lucide="search" class="ui-icon"></i></span>
+        <input type="text" class="topbar-search-input" placeholder="Ask DIC AI — find alumni, jobs, or events…" id="global-search" oninput="handleGlobalSearch(this.value)" />
+      </div>
+      <div class="topbar-actions">
+        <!-- Role is decided by the authenticated server-side user record and is
+             shown read-only. It was a <select> that re-authenticated as any
+             role using credentials shipped in app.js. -->
+        <span class="role-display" id="topbar-role-display"></span>
+        <div class="offline-status online" id="offline-status" title="PostgreSQL 16 Engine Connected · PDPA 2026 Compliant">
+          <span class="status-dot"></span>
+          <span class="status-text">PostgreSQL 16 · Live</span>
+        </div>
+        <button class="topbar-btn alert-btn" onclick="showBroadcastModal()" title="Send a broadcast"><i data-lucide="megaphone" class="ui-icon"></i><span class="alert-btn-label"> Broadcast</span></button>
+        <button class="topbar-btn notif-btn" onclick="showNotifications()"><i data-lucide="bell" class="ui-icon"></i> <span class="notif-count">7</span></button>
+        <div class="topbar-avatar" id="topbar-user-avatar" onclick="showPage('profile')">SA</div>
+      </div>
+    </div>
+
+    <!-- PAGES CONTAINER -->
+    <main class="pages-container" id="pages">
+      <!-- ============ DASHBOARD PAGE ============ -->
+      <!-- renderDashboard() replaces this element's contents with the
+           role-specific dashboard as soon as the session resolves. What used to
+           sit here was a full Executive Dashboard written as static markup:
+           12,847 alumni, ৳45.2L collected, 1,203 mentorships, 47 events, a
+           bKash/Nagad/Rocket/Card funnel at 68/19/8/5%, a badge reading 12
+           pending verifications, and four "High Priority Alerts" describing
+           incidents that never happened. None of it came from the database, and
+           all of it was visible for the moment before the real dashboard
+           rendered over the top. -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Loading your dashboard…</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ DIRECTORY PAGE ============ -->
+
+      <!-- ============ DIRECTORY PAGE ============ -->
+      <div class="page hidden" id="page-directory">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Alumni Directory</h1>
+            <p class="page-subtitle">Search verified DIC alumni profiles</p>
+          </div>
+        </div>
+        <!-- Search Bar -->
+        <div class="ai-search-bar glass-card">
+          <span class="ai-search-icon"><i data-lucide="bot" class="ui-icon"></i></span>
+          <input type="text" class="ai-search-input" id="dir-search" placeholder="Ask ConnectAI — 'Find software engineers in Dhaka class of 2019'" oninput="filterDirectory(this.value)" />
+          <button class="voice-btn" title="Voice Input"><i data-lucide="mic" class="ui-icon"></i></button>
+          <div class="search-indicator" id="search-indicator" style="display:none;">
+            <div class="typing-dots"><span></span><span></span><span></span></div>
+            <span>Searching vectors…</span>
+          </div>
+        </div>
+        <div class="transliteration-badge hidden" id="transliteration-badge">
+          <i data-lucide="languages" class="ui-icon"></i> Bangla detected — passing through transliteration layer… <span class="tl-latency">&lt;150ms</span>
+        </div>
+        <!-- Filters -->
+        <div class="filter-chips" id="filter-chips">
+          <button class="chip active" onclick="toggleChip(this,'all')">All</button>
+          <button class="chip" onclick="toggleChip(this,'mentor')"><i data-lucide="handshake" class="ui-icon"></i> Mentors</button>
+          <button class="chip" onclick="toggleChip(this,'2020')">Batch 2020</button>
+          <button class="chip" onclick="toggleChip(this,'2019')">Batch 2019</button>
+          <button class="chip" onclick="toggleChip(this,'2018')">Batch 2018</button>
+          <button class="chip" onclick="toggleChip(this,'tech')"><i data-lucide="laptop" class="ui-icon"></i> Tech</button>
+          <button class="chip" onclick="toggleChip(this,'finance')"><i data-lucide="bar-chart-3" class="ui-icon"></i> Finance</button>
+          <button class="chip" onclick="toggleChip(this,'dhaka')"><i data-lucide="map-pin" class="ui-icon"></i> Dhaka</button>
+          <button class="chip" onclick="toggleChip(this,'uk')"><i data-lucide="flag" class="ui-icon"></i> UK</button>
+          <button class="chip" onclick="toggleChip(this,'usa')"><i data-lucide="flag" class="ui-icon"></i> USA</button>
+        </div>
+        <div class="directory-stats-bar">
+          <span id="dir-count">Loading profiles…</span>
+          <div class="sort-options">
+            <select class="form-select sm" onchange="sortDirectory(this.value)">
+              <option value="relevance">Most Relevant</option>
+              <option value="recent">Recently Active</option>
+              <option value="batch">Batch Year</option>
+            </select>
+          </div>
+        </div>
+        <!-- Profile Grid -->
+        <div class="alumni-grid" id="alumni-grid"></div>
+        <div class="load-more-container">
+          <button class="btn btn-outline" onclick="loadMoreAlumni()">Load More Profiles</button>
+        </div>
+      
+        <div class="glass-card mt-16">
+          <div class="card-header"><h3 class="card-title">Verification Queue</h3></div>
+          <div id="verification-queue"></div>
+        </div>
+        <div class="glass-card mt-16">
+          <div class="card-header"><h3 class="card-title">Bulk Import</h3></div>
+          <div id="bulk-import-panel"></div>
+        </div>
+        <div class="glass-card mt-16">
+          <div class="card-header"><h3 class="card-title">Custom Profile Fields</h3></div>
+          <div id="custom-field-manager"></div>
+        </div>
+      </div>
+
+      <!-- ============ EVENTS PAGE ============ -->
+      <div class="page hidden" id="page-events">
+
+        <!-- ─── EVENT LIST ─── -->
+        <div id="ev-list-view">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Events</h1>
+              <p class="page-subtitle" id="ev-list-subtitle">Browse and register for college events</p>
+            </div>
+            <div class="page-header-actions" id="ev-list-actions"></div>
+          </div>
+
+          <!-- One toolbar row on desktop: compact search on the left, status
+               filters on the right. Stacks on narrow screens. -->
+          <div class="ev-toolbar">
+            <div class="ev-search">
+              <i data-lucide="search" class="ui-icon ev-search-icon" aria-hidden="true"></i>
+              <label class="sr-only" for="ev-search-input">Search events</label>
+              <input type="search" id="ev-search-input" class="ev-search-input"
+                     placeholder="Search events by name or venue"
+                     oninput="onEventSearch(this.value)" autocomplete="off" />
+            </div>
+            <div class="ev-filters" id="ev-filters" role="tablist" aria-label="Filter events by status"></div>
+          </div>
+
+          <div class="ev-grid" id="ev-list"></div>
+        </div>
+
+        <!-- ─── SINGLE EVENT WORKSPACE ─── -->
+        <div id="ev-workspace-view" class="hidden">
+          <button class="ev-back" onclick="closeEventWorkspace()">
+            <i data-lucide="arrow-left" class="ui-icon" aria-hidden="true"></i> All events
+          </button>
+
+          <!-- Event context header — present on every tab -->
+          <div id="ev-context-header"></div>
+
+          <nav class="ev-tabs" id="ev-tabs" role="tablist" aria-label="Event sections"></nav>
+          <div id="ev-tab-content" role="tabpanel"></div>
+        </div>
+      </div>
+
+      <!-- ============ JOBS PAGE ============ -->
+
+      <!-- ============ JOBS PAGE ============ -->
+      <div class="page hidden" id="page-jobs">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Alumni Job Board</h1>
+            <p class="page-subtitle">Closed-loop network · Alumni-only postings</p>
+          </div>
+          <button class="btn btn-primary" onclick="showPostJobModal()">+ Post a Job</button>
+        </div>
+        <div class="alumni-only-banner">
+          <i data-lucide="lock" class="ui-icon"></i> Closed-Loop Network — Only verified alumni can post and apply. Non-alumni access is restricted.
+        </div>
+        <div class="jobs-layout">
+          <div class="jobs-main">
+            <div class="jobs-filters">
+              <input type="text" class="form-input" placeholder="Search jobs, companies…" id="job-search" oninput="filterJobs(this.value)" />
+              <select class="form-select" onchange="filterJobType(this.value)">
+                <option value="">All Types</option>
+                <option value="fulltime">Full-time</option>
+                <option value="internship">Internship</option>
+                <option value="contract">Contract</option>
+              </select>
+              <select class="form-select" onchange="filterJobLocation(this.value)">
+                <option value="">All Locations</option>
+                <option value="dhaka">Dhaka</option>
+                <option value="remote">Remote</option>
+                <option value="uk">UK</option>
+                <option value="usa">USA</option>
+              </select>
+            </div>
+            <div id="jobs-list"></div>
+          </div>
+            <!-- Two cards used to sit here. "Your Resume" offered a PDF upload
+                 promising that "AI will extract skills and match jobs"; its click
+                 handler, triggerResumeUpload(), was never defined, nothing was
+                 stored, and no such matching exists. "Internship Drives" listed
+                 three openings at bKash, Pathao and Samsung R&amp;D that were a
+                 literal array shown beside the real postings. In their place is
+                 the referral queue, which lists rows job_referrals actually
+                 holds - requests that previously had no read path at all. -->
+            <div class="jobs-sidebar">
+              <div class="glass-card">
+                <div class="card-header"><h3 class="card-title">Referral Requests</h3></div>
+                <div id="job-referrals-list"></div>
+              </div>
+            </div>
+        </div>
+      </div>
+
+      <!-- ============ ANALYTICS PAGE ============ -->
+
+      <!-- ============ MENTORSHIP PAGE ============ -->
+      <div class="page hidden" id="page-mentorship">
+        <div class="page-header">
+          <div>
+            <!-- "AI Mentorship Hub / Weighted 6-criteria AI matching engine".
+                 There is no model and no engine: suggestions come from a SQL
+                 comparison of four profile fields. -->
+            <h1 class="page-title">Mentorship Hub</h1>
+            <p class="page-subtitle">Mentors suggested by shared profile attributes</p>
+          </div>
+          <button class="btn btn-primary" onclick="showMentorModal()">+ Request a Mentor</button>
+        </div>
+        <div class="mentorship-layout">
+          <!-- Left: My Connections -->
+          <div class="mentorship-main">
+            <div class="glass-card">
+              <div class="card-header">
+                <h3 class="card-title">My Active Connections</h3>
+                <!-- read a literal 4 against a mentorships table holding no rows -->
+                <span class="badge-count" id="mentorship-active-count">&mdash;</span>
+              </div>
+              <div class="mentorship-list" id="mentorship-list"></div>
+            </div>
+            <div class="glass-card mt-16">
+              <div class="card-header">
+                <h3 class="card-title">Pending Requests</h3>
+                <!-- read a literal "3 pending" -->
+                <span class="card-badge amber" id="mentorship-pending-count">&mdash;</span>
+              </div>
+              <div id="pending-requests"></div>
+            </div>
+            <!-- A "ConnectAI Matching Criteria - 6 Dimensions" card sat here with
+                 six weighted bars: Industry 25%, Skill Gap 20%, Geographic 15%,
+                 Shared Campus 15%, Language Preference 15%, Calendar Availability
+                 10%. Four described real comparisons the suggestion query makes.
+                 The other two did not: alumni_profiles has no language column at
+                 all, and "calendar availability" scored can_mentor, which every
+                 suggested mentor has by definition. Only the comparisons that
+                 actually run are listed now. -->
+            <div class="glass-card mt-16">
+              <div class="card-header">
+                <h3 class="card-title">How mentors are suggested</h3>
+                <span class="card-badge indigo">4 comparisons</span>
+              </div>
+              <div class="matching-criteria" id="matching-criteria"></div>
+            </div>
+          </div>
+          <!-- Right: Suggested Mentors -->
+          <div class="mentorship-sidebar">
+            <div class="glass-card">
+              <div class="card-header">
+                <h3 class="card-title">Suggested Mentors</h3>
+                <span class="card-badge teal">By shared profile</span>
+              </div>
+              <div id="suggested-mentors"></div>
+            </div>
+            <!-- A Quota Tracker sat here showing "2/5 Mentee Slots" on a filled
+                 progress ring with "3 available this month". No quota, slot or
+                 limit is stored anywhere and nothing enforces one, so all three
+                 numbers were invented. Replaced by the caller's real counts. -->
+            <div class="glass-card mt-16">
+              <div class="card-header">
+                <h3 class="card-title">My mentorship activity</h3>
+              </div>
+              <div id="mentorship-activity"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ DONATIONS PAGE ============ -->
+
+      <!-- ============ DONATIONS PAGE ============ -->
+      <div class="page hidden" id="page-donations">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Donation Campaigns</h1>
+            <p class="page-subtitle">bKash · Nagad · Rocket · International Card</p>
+          </div>
+          <button class="btn btn-primary" onclick="showCreateCampaign()">+ New Campaign</button>
+        </div>
+        <!-- Campaign Stats -->
+        <!-- These four tiles read ৳24.7L raised, 1,847 donors, ৳1,338 average
+             and a 98.2% success rate. All four were literals. They are now
+             filled by renderDonationStats() from donations with status SUCCESS.
+             There is no "transaction success rate" tile any more: it would need
+             failed-payment rows to divide by, and the settle/fail outcome is
+             only recorded for payments the platform itself processed. -->
+        <div class="kpi-grid four">
+          <div class="mini-kpi glass-card">
+            <div class="mini-kpi-value teal" id="don-kpi-raised">—</div>
+            <div class="mini-kpi-label">Donations Settled</div>
+          </div>
+          <div class="mini-kpi glass-card">
+            <div class="mini-kpi-value indigo" id="don-kpi-donors">—</div>
+            <div class="mini-kpi-label">Donors</div>
+          </div>
+          <div class="mini-kpi glass-card">
+            <div class="mini-kpi-value amber" id="don-kpi-avg">—</div>
+            <div class="mini-kpi-label">Average Donation</div>
+          </div>
+          <div class="mini-kpi glass-card">
+            <div class="mini-kpi-value green" id="don-kpi-campaigns">—</div>
+            <div class="mini-kpi-label">Active Campaigns</div>
+          </div>
+        </div>
+        <div class="campaigns-grid" id="campaigns-grid"></div>
+      </div>
+
+      <!-- ============ EVENTS PAGE ============ -->
+
+      <!-- ============ CHAPTERS PAGE ============ -->
+      <div class="page hidden" id="page-chapters">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Chapter Management</h1>
+            <p class="page-subtitle">Regional · Batch · Interest-based groups</p>
+          </div>
+          <button class="btn btn-primary" onclick="showCreateChapterModal()">+ New Chapter</button>
+        </div>
+        <div class="chapters-layout">
+          <div class="chapters-tree glass-card">
+            <div class="card-header"><h3 class="card-title">Chapter Hierarchy</h3></div>
+            <div id="chapter-tree"></div>
+          </div>
+          <div class="chapter-detail glass-card" id="chapter-detail">
+            <div class="empty-state">
+              <div class="empty-icon"><i data-lucide="hexagon" class="ui-icon"></i></div>
+              <div class="empty-text">Select a chapter to view details</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ NEWS PAGE ============ -->
+
+      <!-- ============ ANALYTICS PAGE ============ -->
+      <div class="page hidden" id="page-analytics">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Executive Analytics</h1>
+            <p class="page-subtitle">Impact dashboard · Exportable reports</p>
+          </div>
+          <div class="page-header-actions">
+          </div>
+        </div>
+        <div class="analytics-tabs">
+          <button class="chart-tab active" onclick="switchAnalytics('engagement', this)">Engagement</button>
+          <button class="chart-tab" onclick="switchAnalytics('donations', this)">Donations</button>
+          <button class="chart-tab" onclick="switchAnalytics('mentorship', this)">Mentorship Health</button>
+          <button class="chart-tab" onclick="switchAnalytics('eventROI', this)">Event ROI</button>
+          <button class="chart-tab" onclick="switchAnalytics('geographic', this)">Geographic</button>
+        </div>
+        <!-- Analytics content panels -->
+        <div id="analytics-panel-main" class="analytics-grid">
+          <div class="glass-card span-2 analytics-chart-card">
+            <div class="card-header"><h3 class="card-title">Engagement Trend</h3></div>
+            <div class="chart-frame"><canvas id="analytics-chart" height="200"></canvas></div>
+          </div>
+          <div class="glass-card analytics-metrics-card">
+            <div class="card-header"><h3 class="card-title">Key Metrics</h3></div>
+            <div id="analytics-metrics"></div>
+          </div>
+          <div class="glass-card mt-16 span-3">
+            <div class="card-header">
+              <h3 class="card-title">Alumni Geographic Distribution</h3>
+              <span class="card-badge teal">Global</span>
+            </div>
+            <div class="geo-heatmap" id="geo-heatmap"></div>
+          </div>
+        </div>
+        <!-- Mentorship Health panel -->
+        <div id="analytics-panel-mentorship" class="hidden">
+          <div class="glass-card" style="margin-bottom:16px">
+            <div class="card-header"><h3 class="card-title">Mentorship Health Scorecard</h3><span class="card-badge teal" id="mentorship-pair-count">—</span></div>
+            <div id="mentorship-health-grid"></div>
+          </div>
+          <div class="analytics-grid analytics-split-2">
+            <div class="glass-card"><div class="card-header"><h3 class="card-title">Session Frequency</h3></div><canvas id="session-freq-chart" height="180"></canvas></div>
+            <div class="glass-card"><div class="card-header"><h3 class="card-title">Outcome Distribution</h3></div><div id="outcome-distribution"></div></div>
+          </div>
+        </div>
+        <!-- Event ROI panel -->
+        <div id="analytics-panel-eventROI" class="hidden">
+          <div class="glass-card" style="margin-bottom:16px">
+            <div class="card-header"><h3 class="card-title">Event ROI Analysis</h3><span class="card-badge indigo">FY 2026</span></div>
+            <div id="event-roi-table"></div>
+          </div>
+          <div class="analytics-grid analytics-split-2">
+            <div class="glass-card"><div class="card-header"><h3 class="card-title">Revenue vs Cost</h3></div><canvas id="roi-chart" height="200"></canvas></div>
+            <div class="glass-card"><div class="card-header"><h3 class="card-title">ROI Summary</h3></div><div id="roi-summary"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ CHAPTERS PAGE ============ -->
+
+      <!-- ============ MODERATION ============ -->
+      <div class="page hidden" id="page-moderation">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Moderation</h1>
+            <p class="page-subtitle">Chapters and stories awaiting review</p>
+          </div>
+        </div>
+        <div id="moderation-panel"></div>
+      </div>
+
+      <!-- ============ BROADCASTS ============ -->
+      <div class="page hidden" id="page-broadcasts">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Broadcasts</h1>
+            <p class="page-subtitle">Announcements sent to alumni, with real delivery counts</p>
+          </div>
+          <button class="btn btn-primary" onclick="showBroadcastModal()"><i data-lucide="megaphone" class="ui-icon"></i> New Broadcast</button>
+        </div>
+        <div class="glass-card"><div id="broadcast-history"></div></div>
+      </div>
+
+      <!-- ============ SEGMENTATION ============ -->
+      <div class="page hidden" id="page-segmentation">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Audience Segmentation</h1>
+            <p class="page-subtitle">Count the alumni a filter combination selects</p>
+          </div>
+        </div>
+        <div id="segmentation-panel"></div>
+      </div>
+
+      <!-- ============ COMPLIANCE ============ -->
+      <div class="page hidden" id="page-compliance">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Compliance</h1>
+            <p class="page-subtitle">PDPA 2026 · CA 2023 &middot; encrypted identity vault and DSAR</p>
+          </div>
+        </div>
+        <div class="compliance-grid" id="compliance-grid"></div>
+        <div class="glass-card mt-16">
+          <div class="card-header"><h3 class="card-title">Identity Vault</h3></div>
+          <div id="nid-vault-panel"></div>
+        </div>
+      </div>
+
+      <!-- ============ ADMINISTRATION ============ -->
+      <!-- Administrator accounts. Super admin only, here and on the server. -->
+      <div class="page hidden" id="page-administration">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Administration</h1>
+            <p class="page-subtitle">Institutional administrator accounts</p>
+          </div>
+        </div>
+        <div id="administration-body"></div>
+      </div>
+
+      <!-- ============ AUDIT LOG ============ -->
+      <div class="page hidden" id="page-audit">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Audit Logs</h1>
+            <p class="page-subtitle">Hash-chained, append-only record of privileged actions</p>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-header"><h3 class="card-title">Immutable Audit Trail</h3><span class="card-badge teal">Write-Once</span></div>
+          <!-- Distinct from the dashboard's own #audit-log panel: two elements
+               sharing that id left this page permanently empty. -->
+          <div id="audit-log-page"></div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- BOTTOM NAV (Mobile) -->
+
+    <nav class="bottom-nav">
+      <a class="bottom-nav-item active" onclick="showPage('dashboard')" id="bnav-dashboard">
+        <span class="bnav-icon"><i data-lucide="layout-dashboard" class="ui-icon"></i></span><span class="bnav-label">Home</span>
+      </a>
+      <a class="bottom-nav-item" onclick="showPage('directory')" id="bnav-directory">
+        <span class="bnav-icon"><i data-lucide="users" class="ui-icon"></i></span><span class="bnav-label">Directory</span>
+      </a>
+      <a class="bottom-nav-item" onclick="showPage('mentorship')" id="bnav-mentorship">
+        <span class="bnav-icon"><i data-lucide="bot" class="ui-icon"></i></span><span class="bnav-label">ConnectAI</span>
+      </a>
+      <a class="bottom-nav-item" onclick="showPage('events')" id="bnav-events">
+        <span class="bnav-icon"><i data-lucide="calendar-days" class="ui-icon"></i></span><span class="bnav-label">Events</span>
+      </a>
+      <a class="bottom-nav-item" onclick="showPage('profile')" id="bnav-profile">
+        <span class="bnav-icon"><i data-lucide="id-card" class="ui-icon"></i></span><span class="bnav-label">Profile</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- MODALS -->
+  <!-- Backdrop clicks are handled in js/core.js: a data-entry form ignores them so
+       a stray click cannot discard what the user typed. -->
+  <div class="modal-overlay hidden" id="modal-overlay">
+    <div class="modal-content glass-card" id="modal-content">
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATION PANEL -->
+  <div class="notif-panel hidden" id="notif-panel">
+    <div class="notif-header">
+      <h3>Notifications</h3>
+      <div class="notif-header-actions">
+        <button class="notif-readall" onclick="markAllNotificationsRead()">Mark all read</button>
+        <button onclick="closeNotifications()"><i data-lucide="x" class="ui-icon"></i></button>
+      </div>
+    </div>
+    <div id="notif-list"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.474.0/dist/umd/lucide.js"></script>
+  <script src="api.js"></script>
+
+  <!-- The staff portal loads only what it uses. directory.js, profile.js and
+       news.js are absent because it has no alumni directory card grid, no
+       personal profile hub and no news feed; administration.js is present and
+       is not loaded by the alumni site at all. Same files, different list. -->
+  <script src="js/core.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/navigation.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/directory.js"></script>
+  <script src="js/mentorship.js"></script>
+  <script src="js/donations.js"></script>
+  <script src="js/jobs.js"></script>
+  <script src="js/chapters.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/compliance.js"></script>
+  <script src="js/administration.js"></script>
+  <script src="js/events.js"></script>
+</body>
+</html>

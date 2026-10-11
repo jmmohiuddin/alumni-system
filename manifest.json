@@ -1,0 +1,19 @@
+{
+  "name": "DIC Alumni — Daffodil International College Alumni Platform",
+  "short_name": "DIC Alumni",
+  "description": "Official Alumni Networking & Management System for Daffodil International College (DIC)",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070B14",
+  "theme_color": "#00A859",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%2300A859'/><path d='M96 20L30 56v48c0 45 30 87 66 96 36-9 66-51 66-96V56L96 20z' fill='white' opacity='0.9'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["education", "productivity", "social"],
+  "lang": "en-BD"
+}
